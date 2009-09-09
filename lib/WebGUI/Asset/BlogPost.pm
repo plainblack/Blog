@@ -15,6 +15,12 @@ package WebGUI::Asset::BlogPost;
 =cut
 
 use strict;
+
+use base qw(
+    WebGUI::Asset::Wobject
+    WebGUI::AssetAspect::Installable
+);
+
 use Tie::IxHash;
 use base 'WebGUI::Asset';
 use WebGUI::Utility;
