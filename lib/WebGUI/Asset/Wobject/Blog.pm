@@ -39,7 +39,7 @@ Optional user id.  If not supplied, the current user is used.
 sub canPost {
     my $self = shift;
     my $user = $self->userIdOrCurrent(shift);
-    return $user->isInGroup( $self->get('groupToPost') );
+    return $user->isInGroup( $self->get('groupIdPost') );
 }
 
 #-------------------------------------------------------------------
@@ -57,7 +57,7 @@ Optional user id.  If not supplied, the current user is used.
 sub canReply {
     my $self = shift;
     my $user = $self->userIdOrCurrent(shift);
-    return $user->isInGroup( $self->get('groupToReply') );
+    return $user->isInGroup( $self->get('groupIdReply') );
 }
 
 #-------------------------------------------------------------------
@@ -72,9 +72,9 @@ sub definition {
 
     tie my %properties, 'Tie::IxHash';
     %properties = (
-        groupToPost  => { fieldType => 'group' },
-        groupToReply => { fieldType => 'group' },
-        templateId   => {
+        groupIdPost  => { fieldType => 'group' },
+        groupIdReply => { fieldType => 'group' },
+        viewTemplateId   => {
             fieldType => 'group',
             tab       => 'display',
             namespace => 'Blog/View',
@@ -138,7 +138,7 @@ See WebGUI::Asset::prepareView() for details.
 sub prepareView {
     my $self = shift;
     $self->SUPER::prepareView();
-    my $template = WebGUI::Asset::Template->new( $self->session, $self->get('templateId') );
+    my $template = WebGUI::Asset::Template->new( $self->session, $self->get('viewTemplateId') );
     $template->prepare( $self->getMetaDataAsTemplateVariables );
     $self->{_viewTemplate} = $template;
 }
