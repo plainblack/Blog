@@ -55,8 +55,8 @@ addToGroups($repliers, $red, $brooks);
 my $blog = $home->addChild(
     {
         className    => $class,
-        groupToPost  => $posters->getId,
-        groupToReply => $repliers->getId,
+        groupIdPost  => $posters->getId,
+        groupIdReply => $repliers->getId,
     }
 );
 
