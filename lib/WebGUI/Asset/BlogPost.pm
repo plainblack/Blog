@@ -149,6 +149,15 @@ sub editTemplateVariables {
 		     { name  => 'savePost', value => $i18n->get('save post'),}
         ),
     };
+
+    if ($isNew) {
+        $var->{formHeader} .= WebGUI::Form::hidden( $session, { name => 'assetId', value => 'new' } )
+            . WebGUI::Form::hidden( $session, { name => 'class', value => $form->process( 'class', 'className' ) } );
+    }
+    else {
+        $var->{formHeader} .= WebGUI::Form::hidden( $session, { name => 'url', value => $url } );
+    }
+    
     return $var;
 }
 
@@ -162,22 +171,8 @@ Returns a templated form for adding or editing Stories.
 
 sub getEditForm {
     my $self    = shift;
-    my $session = $self->session;
-    my $i18n    = WebGUI::International->new( $session, 'Asset_BlogPost' );
-    my $form    = $session->form;
-    my $blog    = $self->getBlog;
-    my $isNew   = $self->getId eq 'new';
-    my $url     = $isNew ? $blog->getUrl : $self->getUrl;
-    my $title   = $self->getTitle;
-    my $var     = $self->editTemplateVariables;
 
-    if ($isNew) {
-        $var->{formHeader} .= WebGUI::Form::hidden( $session, { name => 'assetId', value => 'new' } )
-            . WebGUI::Form::hidden( $session, { name => 'class', value => $form->process( 'class', 'className' ) } );
-    }
-    else {
-        $var->{formHeader} .= WebGUI::Form::hidden( $session, { name => 'url', value => $url } );
-    }
+    my $var     = $self->editTemplateVariables;
     return $self->processTemplate( $var, $blog->get('editPostTemplateId') );
 
 } ## end sub getEditForm
