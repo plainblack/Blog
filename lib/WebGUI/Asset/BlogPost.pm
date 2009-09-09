@@ -90,11 +90,10 @@ sub definition {
     push @{$definition}, {
         assetName         => $i18n->get('assetName'),
         icon              => 'blogpost.gif',
-        autoGenerateForms => 1,
+        autoGenerateForms => 0,
         tableName         => 'BlogPost',
         className         => 'WebGUI::Asset::BlogPost',
         properties        => \%properties,
-        autoGenerateForm  => 0,
         };
     return $class->SUPER::definition( $session, $definition );
 } ## end sub definition
