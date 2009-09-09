@@ -16,6 +16,8 @@ package WebGUI::AssetAspect::Pingback;
 
 use strict;
 use Class::C3;
+use JSON;
+
 use WebGUI::Exception;
 use WebGUI::Asset;
 
@@ -111,7 +113,25 @@ Returns a list of template variables to be used with renderPingbackLinks().
 =cut
 
 sub getPingbackLinksTemplateVariables {
+    my ($self) = @_;
 
+
+    # Decode pingback links here
+    my $links = []
+    eval {
+        $links = JSON->new->decode($self->get(q{pingbackLinks}) || q{[]});
+    };
+    if ($@) {
+        $self->session()->errorHandler()->error(qq{PingbackLinks cannot be decoded: $@});
+
+        $links = [];
+    }
+
+    my %vars = (
+        'pingbackLinks.loop' => $links,
+    );
+
+    return \%var;
 } #getPingbackLinksTemplateVariables
 
 #-------------------------------------------------------------------
@@ -123,7 +143,21 @@ Renders the pingbackTemplateId template populated with data from getPingbackLink
 =cut
 
 sub renderPingbackLinks {
+    my ($self) = @_;
 
+    my $session = $self->session();
+    my $templateId = $self->get(q{pingbackTemplateId});
+    my $template = WebGUI::Asset::Template->new($session, $templateId);
+
+    if (!$template) {
+        WebGUI::Error::ObjectNotFound::Template->throw(
+            'error'      => qq{Template not found},
+            'templateId' => $templateId,
+            'assetId'    => $self->getId(),
+        );
+    }
+
+    return $template->process($self->getPingbackLinksTemplateVariables());
 } #renderPingbackLinks
 
 #-------------------------------------------------------------------
