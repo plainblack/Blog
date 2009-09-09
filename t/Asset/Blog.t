@@ -13,6 +13,7 @@ use FindBin;
 use strict;
 use lib "/data/WebGUI/t/lib";
 use Test::More;
+use Test::Deep;
 use WebGUI::Test; # Must use this before any other WebGUI modules
 use WebGUI::Session;
 use WebGUI::Test::Maker::Permission;
@@ -22,8 +23,9 @@ use WebGUI::Group;
 #----------------------------------------------------------------------------
 # Init
 
-my $class = 'WebGUI::Asset::Wobject::Blog';
-my $session         = WebGUI::Test->session;
+my $class     = 'WebGUI::Asset::Wobject::Blog';
+my $postClass = 'WebGUI::Asset::BlogPost';
+my $session   = WebGUI::Test->session;
 
 my $home = WebGUI::Asset->getDefault($session);
 my $tag = WebGUI::VersionTag->getWorking($session);
@@ -81,7 +83,7 @@ $replyPermissions->prepare(
 #----------------------------------------------------------------------------
 # Tests
 
-my $testCount = 2 + $replyPermissions->plan + $postPermissions->plan;
+my $testCount = 5 + $replyPermissions->plan + $postPermissions->plan;
 plan tests => $testCount;
 
 #----------------------------------------------------------------------------
@@ -91,6 +93,44 @@ use_ok($class);
 isa_ok($blog, $class, "addChild");
 $postPermissions->run();
 $replyPermissions->run();
+
+my $firstPost = $blog->addChild(
+    {
+        className => $postClass,
+        title     => 'The first time I laid eyes on Andy Dufresne',
+        content   => 'I knew I would like him.',
+    }
+);
+
+isa_ok($firstPost, $postClass, 'First!');
+
+my $secondPost = $blog->addChild(
+    {
+        className => $postClass,
+        title     => 'Two things never happened after that',
+        content   => 'The sisters never messed with Andy again...',
+    }
+);
+
+isa_ok($secondPost, $postClass, 'Second!');
+
+my $var = $blog->viewTemplateVariables;
+my $got = {
+    posts => $var->{posts}
+};
+my $expected = {
+    posts => [
+        {
+            content => $firstPost->view,
+            variables => $firstPost->viewTemplateVariables,
+        },
+        {
+            content => $secondPost->view,
+            variables => $secondPost->viewTemplateVariables,
+        },
+    ]
+};
+cmp_deeply($got, $expected, 'template vars');
 
 #----------------------------------------------------------------------------
 # Cleanup
