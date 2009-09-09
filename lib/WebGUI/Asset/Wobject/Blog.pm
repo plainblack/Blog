@@ -39,14 +39,14 @@ Optional user id.  If not supplied, the current user is used.
 sub canPost {
     my $self = shift;
     my $user = $self->userIdOrCurrent(shift);
-    return $user->isInGroup($self->get('groupToPost'));
+    return $user->isInGroup( $self->get('groupToPost') );
 }
 
 #-------------------------------------------------------------------
 
 =head2 canReply ( [userId] )
 
-Verifies group and user permissions to be able to post to the blog.
+Verifies group and user permissions to be able to reply to blog posts.
 
 =head3 userid
 
@@ -57,7 +57,7 @@ Optional user id.  If not supplied, the current user is used.
 sub canReply {
     my $self = shift;
     my $user = $self->userIdOrCurrent(shift);
-    return $user->isInGroup($self->get('groupToReply'));
+    return $user->isInGroup( $self->get('groupToReply') );
 }
 
 #-------------------------------------------------------------------
@@ -67,18 +67,14 @@ sub canReply {
 =cut
 
 sub definition {
-    my ($class, $session, $definition) = @_;
-    my $i18n = WebGUI::International->new( $session, 'Asset_NewWobject' );
+    my ( $class, $session, $definition ) = @_;
+    my $i18n = WebGUI::International->new( $session, 'Asset_Blog' );
 
     tie my %properties, 'Tie::IxHash';
     %properties = (
-        groupToPost => {
-            fieldType => 'group',
-        },
-        groupToReply => {
-            fieldType => 'group',
-        },
-        templateId => {
+        groupToPost  => { fieldType => 'group' },
+        groupToReply => { fieldType => 'group' },
+        templateId   => {
             fieldType => 'group',
             tab       => 'display',
             namespace => 'Blog/View',
@@ -86,18 +82,18 @@ sub definition {
         postTemplateId => {
             fieldType => 'group',
             tab       => 'display',
-            namespace => 'Blog/Post',
+            namespace => 'Blog/Post/View',
         },
         editPostTemplateId => {
             fieldType => 'group',
             tab       => 'display',
-            namespace => 'Blog/Post',
+            namespace => 'Blog/Post/Edit',
         },
     );
 
-    foreach my $p (keys %properties) {
+    foreach my $p ( keys %properties ) {
         my $field = $properties{$p};
-        $field->{label} = $i18n->get("$p label");
+        $field->{label}     = $i18n->get("$p label");
         $field->{hoverHelp} = $i18n->get("$p description");
     }
 
@@ -125,7 +121,7 @@ sub prepareView {
     my $self = shift;
     $self->SUPER::prepareView();
     my $template = WebGUI::Asset::Template->new( $self->session, $self->get('templateId') );
-    $template->prepare($self->getMetaDataAsTemplateVariables);
+    $template->prepare( $self->getMetaDataAsTemplateVariables );
     $self->{_viewTemplate} = $template;
 }
 
@@ -145,8 +141,8 @@ Optional user id.  If not supplied, the current user is used.
 sub userIdOrCurrent {
     my $self    = shift;
     my $session = $self->session;
-    if (my $userId = shift) {
-        return WebGUI::User->new($session, $userId);
+    if ( my $userId = shift ) {
+        return WebGUI::User->new( $session, $userId );
     }
     return $session->user;
 }
@@ -178,14 +174,8 @@ Returns the template vars for the www_view method
 sub viewTemplateVars {
     my $self  = shift;
     my $var   = $self->get;
-    my @posts = map {
-        {
-            variables => $_->viewTemplateVariables,
-            content   => $_->view, 
-        }
-    } $self->getLineage(
-        ['children'], 
-        {
+    my @posts = map { { variables => $_->viewTemplateVariables, content => $_->view } } $self->getLineage(
+        ['children'], {
             returnObjects => 1,
             isa           => 'WebGUI::Asset::BlogPost',
         },
