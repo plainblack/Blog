@@ -46,6 +46,32 @@ These methods are available from this class:
 
 #-------------------------------------------------------------------
 
+=head2 definition
+
+Extends the definition to add the comments and averageCommentRating fields.
+
+=cut
+
+sub definition {
+    my $class, $session, $definition = @_;
+    tie my %properties, 'Tie::IxHash';
+    %properties = (
+        archivesTemplateId => {
+            fieldType       => "template",
+            defaultValue    => 'archives00000000000001', 
+            },
+        );
+    push(@{$definition}, {
+        autoGenerateForms   => 1,
+        tableName           => 'assetAspectArchives',
+        className           => 'WebGUI::AssetAspect::Archives',
+        properties          => \%properties
+        });
+    return $class->next::method($session, $definition);
+}
+
+#-------------------------------------------------------------------
+
 =head2 getArchivesMonthsForYear ( year )
 
 Returns a sorted hashreference of archive months for a given year, and the number of assets in each month.
