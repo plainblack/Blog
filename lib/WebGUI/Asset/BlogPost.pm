@@ -57,7 +57,7 @@ Need to reference Blog for
 =cut
 
 sub canEdit {
-    my ($self, $userId) = @_;
+    my ( $self, $userId ) = @_;
     return $self->getBlog->canPost($userId);
 }
 
@@ -82,11 +82,11 @@ sub definition {
     my $definition = shift;
     my $i18n       = WebGUI::International->new( $session, "Asset_BlogPost" );
     tie my %properties, 'Tie::IxHash', (
-	content=> {
+        content => {
             fieldType    => "HTMLArea",
             defaultValue => '',
         },
-    );
+        );
     push @{$definition}, {
         assetName         => $i18n->get('assetName'),
         icon              => 'blogpost.gif',
@@ -94,7 +94,7 @@ sub definition {
         tableName         => 'BlogPost',
         className         => 'WebGUI::Asset::BlogPost',
         properties        => \%properties,
-	autoGenerateForm=>0,
+        autoGenerateForm  => 0,
         };
     return $class->SUPER::definition( $session, $definition );
 } ## end sub definition
@@ -125,7 +125,7 @@ Returns the parent Blog for this Post.  Cache the entry for speed.
 
 sub getBlog {
     my $self = shift;
-    if (!$self->{_blog}) {
+    if ( !$self->{_blog} ) {
         $self->{_blog} = $self->getParent;
     }
     return $self->{_blog};
@@ -142,44 +142,53 @@ Returns a templated form for adding or editing Stories.
 sub getEditForm {
     my $self    = shift;
     my $session = $self->session;
-    my $i18n    = WebGUI::International->new($session, 'Asset_BlogPost');
+    my $i18n    = WebGUI::International->new( $session, 'Asset_BlogPost' );
     my $form    = $session->form;
-    my $blog = $self->getBlog;
+    my $blog    = $self->getBlog;
     my $isNew   = $self->getId eq 'new';
     my $url     = $isNew ? $blog->getUrl : $self->getUrl;
     my $title   = $self->getTitle;
     my $var     = {
-        formFooter     => WebGUI::Form::formFooter($session),
-        formTitle      => $isNew
-                        ? $i18n->get('add a post','Asset_BlogPost')
-                        : $i18n->get('editing','Asset_BlogPost').' '.$title,
-        titleForm      => WebGUI::Form::text($session, {
-                             name  => 'title',
-                             value => $form->get('title')    || $self->get('title'),
-                          } ),
-        contentForm      => WebGUI::Form::HTMLArea($session, {
-                             name  => 'content',
-                             value => $form->get('content')    || $self->get('content'),
-                          } ),
-        keywordsForm      => WebGUI::Form::text($session, {
-                             name  => 'keywords',
-                             value => $form->get('keywords')    || $self->get('keywords'),
-                          } ),
-        saveButton     => WebGUI::Form::submit($session, {
-                            name  => 'savePost',
-                            value => $i18n->get('save post'),
-                          }),
+        formFooter => WebGUI::Form::formFooter($session),
+        formTitle  => $isNew
+        ? $i18n->get( 'add a post', 'Asset_BlogPost' )
+        : $i18n->get( 'editing',    'Asset_BlogPost' ) . ' ' . $title,
+        titleForm => WebGUI::Form::text(
+            $session, {
+                name  => 'title',
+                value => $form->get('title') || $self->get('title'),
+            }
+        ),
+        contentForm => WebGUI::Form::HTMLArea(
+            $session, {
+                name  => 'content',
+                value => $form->get('content') || $self->get('content'),
+            }
+        ),
+        keywordsForm => WebGUI::Form::text(
+            $session, {
+                name  => 'keywords',
+                value => $form->get('keywords') || $self->get('keywords'),
+            }
+        ),
+        saveButton => WebGUI::Form::submit(
+            $session, {
+                name  => 'savePost',
+                value => $i18n->get('save post'),
+            }
+        ),
     };
+
     if ($isNew) {
-        $var->{formHeader} .= WebGUI::Form::hidden($session, { name => 'assetId', value => 'new' })
-                           .  WebGUI::Form::hidden($session, { name => 'class',   value => $form->process('class', 'className') });
+        $var->{formHeader} .= WebGUI::Form::hidden( $session, { name => 'assetId', value => 'new' } )
+            . WebGUI::Form::hidden( $session, { name => 'class', value => $form->process( 'class', 'className' ) } );
     }
     else {
-        $var->{formHeader} .= WebGUI::Form::hidden($session, { name => 'url',     value => $url});
+        $var->{formHeader} .= WebGUI::Form::hidden( $session, { name => 'url', value => $url } );
     }
-    return $self->processTemplate($var, $blog->get('editPostTemplateId'));
+    return $self->processTemplate( $var, $blog->get('editPostTemplateId') );
 
-}
+} ## end sub getEditForm
 
 #-------------------------------------------------------------------
 
@@ -192,7 +201,7 @@ Extend base class to index BlogPost content
 sub indexContent {
     my $self    = shift;
     my $indexer = $self->SUPER::indexContent;
-    $indexer->addKeywords($self->get('content'), );
+    $indexer->addKeywords( $self->get('content'), );
 }
 
 #-------------------------------------------------------------------
@@ -207,53 +216,8 @@ sub prepareView {
     my $self = shift;
     $self->SUPER::prepareView();
     my $template = $self->getBlog->get('postTemplateId');
-    $template->prepare($self->getMetaDataAsTemplateVariables);
+    $template->prepare( $self->getMetaDataAsTemplateVariables );
     $self->{_viewTemplate} = $template;
-}
-
-#-------------------------------------------------------------------
-
-=head2 processPropertiesFromFormPost ( )
-
-Used to process properties from the form posted.  Do custom things with
-noFormPost fields here, or do whatever you want.  This method is called
-when /yourAssetUrl?func=editSave is requested/posted.
-
-=cut
-
-sub processPropertiesFromFormPost {
-    my $self = shift;
-    $self->SUPER::processPropertiesFromFormPost;
-}
-
-#-------------------------------------------------------------------
-
-=head2 purge ( )
-
-This method is called when data is purged by the system.
-removes collateral data associated with a NewAsset when the system
-purges it's data.  This method is unnecessary, but if you have 
-auxiliary, ancillary, or "collateral" data or files related to your 
-asset instances, you will need to purge them here.
-
-=cut
-
-sub purge {
-    my $self = shift;
-    return $self->SUPER::purge;
-}
-
-#-------------------------------------------------------------------
-
-=head2 purgeRevision ( )
-
-This method is called when data is purged by the system.
-
-=cut
-
-sub purgeRevision {
-    my $self = shift;
-    return $self->SUPER::purgeRevision;
 }
 
 #-------------------------------------------------------------------
@@ -266,9 +230,9 @@ method called by the container www_view method.
 
 sub view {
     my $self    = shift;
-    my $session = $self->session;    
-    my $var = $self->viewTemplateVariables();
-    return $self->processTemplate($var,undef, $self->{_viewTemplate});
+    my $session = $self->session;
+    my $var     = $self->viewTemplateVariables();
+    return $self->processTemplate( $var, undef, $self->{_viewTemplate} );
 }
 
 #-------------------------------------------------------------------
@@ -285,14 +249,12 @@ Template variables will be added onto this hash ref.
 
 sub viewTemplateVariables {
     my ($self)  = @_;
-    my $session = $self->session;    
-    my $blog = $self->getBlog;
+    my $session = $self->session;
     my $var     = $self->get;
 
-    $var->{canEdit}     = $self->canEdit;
+    $var->{canEdit} = $self->canEdit;
     return $var;
 }
-
 
 #-------------------------------------------------------------------
 
@@ -311,7 +273,7 @@ sub www_edit {
     my $session = $self->session;
     return $session->privilege->insufficient() unless $self->canEdit;
     return $session->privilege->locked()       unless $self->canEditIfLocked;
-    return $self->getBlog->processStyle($self->getEditForm);
+    return $self->getBlog->processStyle( $self->getEditForm );
 }
 
 #-------------------------------------------------------------------
@@ -319,18 +281,17 @@ sub www_edit {
 =head2 www_view
 
 Override www_view from asset because BlogPosts inherit a style template from
-the Blog Archive that contains them.
+the Blog that contains them.
 
 =cut
 
 sub www_view {
-	my $self = shift;
-	return $self->session->privilege->noAccess unless $self->canView;
-	$self->session->http->sendHeader;
-	$self->prepareView;
-	return $self->getBlog->processStyle($self->view);
+    my $self = shift;
+    return $self->session->privilege->noAccess unless $self->canView;
+    $self->session->http->sendHeader;
+    $self->prepareView;
+    return $self->getBlog->processStyle( $self->view );
 }
-
 
 1;
 
