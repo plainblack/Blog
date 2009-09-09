@@ -17,9 +17,11 @@ package WebGUI::AssetAspect::Pingback;
 use strict;
 use Class::C3;
 use JSON;
+use XML::RPC;
 
 use WebGUI::Exception;
 use WebGUI::Asset;
+use WebGUI::Utility;
 
 =head1 NAME
 
@@ -116,19 +118,8 @@ sub getPingbackLinksTemplateVariables {
     my ($self) = @_;
 
 
-    # Decode pingback links here
-    my $links = []
-    eval {
-        $links = JSON->new->decode($self->get(q{pingbackLinks}) || q{[]});
-    };
-    if ($@) {
-        $self->session()->errorHandler()->error(qq{PingbackLinks cannot be decoded: $@});
-
-        $links = [];
-    }
-
     my %vars = (
-        'pingbackLinks.loop' => $links,
+        'pingbackLinks.loop' => $self->_getPingbackLinks(),
     );
 
     return \%var;
@@ -169,8 +160,83 @@ Handles an XML-RPC pingback.ping method.
 =cut
 
 sub www_pingback {
+    my ($self) = @_;
 
+    my $session = $self->session();
+    my $xmlrpc = XML::RPC->new();
+    my $xml    = $self->process('POSTDATA');
+
+    $session->http()->setMimeType(q{text/xml});
+
+    return $xmlrpc->receive(
+        $xml, sub {
+            my ($methodname, @params) = @_;
+
+            my ($source, $target) = @params;
+
+            # only catch pingback.ping
+            return 0 if $methodname ne q{pingback.ping};
+
+            # For now, minimal verification only.
+            return 16 if ! (defined $source && $source ne q{});
+            return 33 if ! (defined $target && $target ne q{});
+
+
+            # Verify target
+            my $myUrl = $self->getUrl();
+            if ($target !~ /$myUrl/) {
+
+                $session->errorHandler()->debug(qq{Rejecting pingback target [$target]. My URL [$myUrl]});
+
+                return 33;
+            }
+
+
+            my $links = $self->_getPingbackLinks();
+
+            # already registerd
+            return 48 if isIn($source, @$links);
+
+            push @$links, $source;
+
+            $self->_setPingbackLinks($links);
+
+            # No error. Return a string confirming specifications:
+            #   If the pingback request is successful, then the return
+            #   value MUST be a single string, containing as much
+            #   information as the server deems useful. This string
+            #   is only expected to be used for debugging purposes.
+            return qq{XML sucks! Use JSON instead!};
+        },
+    );
 } #www_pingback
+
+#-------------------------------------------------------------------
+
+sub _getPingbackLinks {
+    my ($self) = @_;
+
+    my $links = [];
+    eval {
+        $links = JSON->new->decode($self->get(q{pingbackLinks}) || q{[]});
+    };
+    if ($@) {
+        $self->session()->errorHandler()->error(qq{PingbackLinks cannot be decoded: $@});
+
+        $links = [];
+    }
+    return $links;
+} #_getPingbackLinks
+
+#-------------------------------------------------------------------
+
+sub _setPingbackLinks {
+    my ($self, $links) = @_;
+
+    $self->{'pingbackLinks'} = JSON->new->encode($links);
+
+    return;
+} #_getPingbackLinks
 
 #-------------------------------------------------------------------
 
