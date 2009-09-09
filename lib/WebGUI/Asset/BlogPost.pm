@@ -57,14 +57,8 @@ Need to reference Blog for
 =cut
 
 sub canEdit {
-    my $self = shift;
-    my $userId = shift || $self->session->user->userId;
-    if ($userId eq $self->get("ownerUserId")) {
-        return 1;
-    }
-    my $user = WebGUI::User->new($self->session, $userId);
-    return $self->SUPER::canEdit($userId)
-        || $self->getBlog>canPost($userId);
+    my ($self, $userId) = @_;
+    return $self->getBlog->canPost($userId);
 }
 
 #-------------------------------------------------------------------
