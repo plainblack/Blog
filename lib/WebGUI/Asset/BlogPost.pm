@@ -130,6 +130,40 @@ sub getBlog {
     return $self->{_blog};
 }
 
+
+
+#-------------------------------------------------------------------
+
+=head2 editTemplateVariables ( )
+
+Get edit template variables. 
+
+=cut
+
+sub editTemplateVariables {
+    my ($self)  = @_;
+    my $session = $self->session;
+    my $var     = {
+	formFooter => WebGUI::Form::formFooter($session),
+	formTitle  => $isNew ?
+		      $i18n->get( 'add a post', 'Asset_BlogPost' ) :
+		      $i18n->get( 'editing',    'Asset_BlogPost' ) . ' ' . $title,
+	titleForm => WebGUI::Form::text($session, 
+		     {name  => 'title', value => $form->get('title') || $self->get('title'),}
+        ),
+        contentForm => WebGUI::Form::HTMLArea($session, 
+		     { name  => 'content', value => $form->get('content') || $self->get('content'),}
+        ),
+        keywordsForm => WebGUI::Form::text($session, 
+		     { name  => 'keywords', value => $form->get('keywords') || $self->get('keywords'),}
+        ),
+        saveButton => WebGUI::Form::submit( $session, 
+		     { name  => 'savePost', value => $i18n->get('save post'),}
+        ),
+    };
+    return $var;
+}
+
 #-------------------------------------------------------------------
 
 =head2 getEditForm (  )
@@ -147,36 +181,7 @@ sub getEditForm {
     my $isNew   = $self->getId eq 'new';
     my $url     = $isNew ? $blog->getUrl : $self->getUrl;
     my $title   = $self->getTitle;
-    my $var     = {
-        formFooter => WebGUI::Form::formFooter($session),
-        formTitle  => $isNew
-        ? $i18n->get( 'add a post', 'Asset_BlogPost' )
-        : $i18n->get( 'editing',    'Asset_BlogPost' ) . ' ' . $title,
-        titleForm => WebGUI::Form::text(
-            $session, {
-                name  => 'title',
-                value => $form->get('title') || $self->get('title'),
-            }
-        ),
-        contentForm => WebGUI::Form::HTMLArea(
-            $session, {
-                name  => 'content',
-                value => $form->get('content') || $self->get('content'),
-            }
-        ),
-        keywordsForm => WebGUI::Form::text(
-            $session, {
-                name  => 'keywords',
-                value => $form->get('keywords') || $self->get('keywords'),
-            }
-        ),
-        saveButton => WebGUI::Form::submit(
-            $session, {
-                name  => 'savePost',
-                value => $i18n->get('save post'),
-            }
-        ),
-    };
+    my $var     = $self->editTemplateVariables;
 
     if ($isNew) {
         $var->{formHeader} .= WebGUI::Form::hidden( $session, { name => 'assetId', value => 'new' } )
@@ -236,13 +241,9 @@ sub view {
 
 #-------------------------------------------------------------------
 
-=head2 viewTemplateVariables ( $var )
+=head2 viewTemplateVariables
 
 Add template variables to the existing template variables.  This includes asset level variables.
-
-=head3 $var
-
-Template variables will be added onto this hash ref.
 
 =cut
 
