@@ -1,6 +1,6 @@
 package WebGUI::Asset::Wobject::Blog;
 
-$VERSION = "1.0.0";
+our $VERSION = "1.0.0";
 
 #-------------------------------------------------------------------
 # WebGUI is Copyright 2001-2009 Plain Black Corporation.
@@ -158,20 +158,20 @@ to be displayed within the page style.
 
 sub view {
     my $self = shift;
-    my $var  = $self->viewTemplateVars;
+    my $var  = $self->viewTemplateVariables;
 
     return $self->processTemplate( $var, undef, $self->{_viewTemplate} );
 }
 
 #-------------------------------------------------------------------
 
-=head2 viewTemplateVars ( )
+=head2 viewTemplateVariables ( )
 
 Returns the template vars for the www_view method
 
 =cut
 
-sub viewTemplateVars {
+sub viewTemplateVariables {
     my $self  = shift;
     my $var   = $self->get;
     my @posts = map { { variables => $_->viewTemplateVariables, content => $_->view } } $self->getLineage(
