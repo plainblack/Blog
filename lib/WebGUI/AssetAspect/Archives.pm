@@ -59,6 +59,7 @@ sub definition {
         archivesTemplateId => {
             fieldType       => "template",
             defaultValue    => 'archives00000000000001', 
+            namespace       => 'asset-aspect-archives',
             },
         );
     push(@{$definition}, {

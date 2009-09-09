@@ -44,6 +44,17 @@ finish($session);
 sub addArchives {
     my $session = shift;
     $session->db->write("create table assetAspectArchives (assetId char(22) binary not null, revisionDate bigint not null, archivesTemplateId char(22) binary not null default 'archives00000000000001' ,primary key (assetId,revisionDate))");
+    my $import = WebGUI::Asset->getImportNode($session);
+    $import->addChild({
+        className       => 'WebGUI::Asset::Template',
+        title           => 'Archives Template (default)',
+        menuTitle       => 'Archives Template (default)',
+        url             => 'archives-template-default',
+        namespace       => 'asset-aspect-archives',
+        template        => q{
+            <!-- template will go here -->
+                            },
+    },'archives00000000000001');
 }
 
 #----------------------------------------------------------------------------
@@ -56,12 +67,8 @@ sub start {
     my $session = WebGUI::Session->open($webguiRoot,$configFile);
     $session->user({userId=>3});
     
-    ## If your script is adding or changing content you need these lines, otherwise leave them commented
-    #
-    # my $versionTag = WebGUI::VersionTag->getWorking($session);
-    # $versionTag->set({name => 'Name Your Tag'});
-    #
-    ##
+     my $versionTag = WebGUI::VersionTag->getWorking($session);
+     $versionTag->set({name => 'Name Your Tag'});
     
     return $session;
 }
@@ -70,11 +77,8 @@ sub start {
 sub finish {
     my $session = shift;
     
-    ## If your script is adding or changing content you need these lines, otherwise leave them commented
-    #
-    # my $versionTag = WebGUI::VersionTag->getWorking($session);
-    # $versionTag->commit;
-    ##
+     my $versionTag = WebGUI::VersionTag->getWorking($session);
+     $versionTag->commit;
     
     $session->var->end;
     $session->close;
