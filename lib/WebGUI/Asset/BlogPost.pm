@@ -131,6 +131,8 @@ sub editTemplateVariables {
     my $form    = $session->form;
     my $isNew   = $self->getId eq 'new';
     my $title   = $self->getTitle;
+    my $blog = $self->getBlog;
+    my $url     = $isNew ? $blog->getUrl : $self->getUrl;
     my $var     = {
 	formFooter => WebGUI::Form::formFooter($session),
 	formTitle  => $isNew ?
@@ -171,6 +173,7 @@ Returns a templated form for adding or editing Stories.
 
 sub getEditForm {
     my $self    = shift;
+    my $blog = $self->getBlog;
 
     my $var     = $self->editTemplateVariables;
     return $self->processTemplate( $var, $blog->get('editPostTemplateId') );
