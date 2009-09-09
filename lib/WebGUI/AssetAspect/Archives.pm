@@ -95,12 +95,15 @@ sub getArchivesMonthsForYear {
         my $month = $date->epochToHuman($asset->get('creationDate'), "%c");
         $months{$month}++;
     }   
-    tie my %sortedMonths, 'Tie::IxHash';
-    my @monthKeys = sort keys %sortedMonths;
+    my @sortedMonths = ();
+    my @monthKeys = sort keys %months;
     foreach my $month (@monthKeys) {
-        $sortedMonths{$month} = $months{$month};
+        push @sortedMonths, {
+            month       => $month,
+            count       => $months{$month},
+            };
     }
-    return \%sortedMonths;
+    return \@sortedMonths;
 }
 
 
@@ -109,7 +112,7 @@ sub getArchivesMonthsForYear {
 
 =head2 getArchivesItemsForMonth ( month, year )
 
-Returns a sorted hashreference of archives items (the descendants of the parent this aspect is attached to).
+Returns a sorted array reference of has hreferences of archives items (the descendants of the parent this aspect is attached to).
 
 =head3 month
 
@@ -126,15 +129,18 @@ sub getArchivesItemsForMonth {
 	my $session = $self->session;
     my $date = $session->datetime;
     my $nextAsset = $self->getLineageIterator(["descendants"],{returnObjects=>1});
-    tie my %items, 'Tie::IxHash';
+    my @items = ();
     while (my $asset = $nextAsset->()) {
         my $year = $date->epochToHuman($asset->get('creationDate'), "%y");
         next unless ($year eq $yearToMatch);
         my $month = $date->epochToHuman($asset->get('creationDate'), "%c");
         next unless ($month eq $monthToMatch);
-        $items{$asset->getUrl} = $asset->getTitle;
+        push @items, {
+            url         => $asset->getUrl,
+            title       => $asset->getTitle,
+        }; 
     }   
-    return \%items;
+    return \@items;
 }
 
 
@@ -143,7 +149,7 @@ sub getArchivesItemsForMonth {
 
 =head2 getArchivesYears ( )
 
-Returns a sorted hashreference of archives years and the number of assets in each year.
+Returns a sorted array of hashes of archives years and the number of assets in each year.
 
 =cut
 
@@ -157,14 +163,30 @@ sub getArchivesYears {
         my $year = $date->epochToHuman($asset->get('creationDate'), "%y");
         $years{$year}++;
     }   
-    tie my %sortedYears, 'Tie::IxHash';
-    my @yearKeys = sort keys %sortedYears;
+    my @sortedYears;
+    my @yearKeys = sort keys %years;
     foreach my $year (@yearKeys) {
-        $sortedYears{$year} = $years{$year};
+        push @sortedYears, {
+            year    => $year,
+            count   => $years{$year},
+            };
     }
-    return \%sortedYears;
+    return \@sortedYears;
 }
 
+
+#-------------------------------------------------------------------
+
+=head2 renderArchives ( )
+
+Renders the archives template and returns the appropriate HTML.
+
+=cut
+
+sub renderArchives {
+	my ($self) = @_;
+    return $self->processTemplate($self->getArchivesYears, $self->get('archivesTemplateId')); 
+}
 
 
 1;
