@@ -111,6 +111,24 @@ sub definition {
 
 #-------------------------------------------------------------------
 
+=head2 posts ( )
+
+Returns an arrayref of all the blog posts for this blog asset.
+
+=cut
+
+sub posts {
+    my $self = shift;
+    return $self->getLineage(
+        ['children'], {
+            returnObjects => 1,
+            isa           => 'WebGUI::Asset::BlogPost',
+        },
+    );
+}
+
+#-------------------------------------------------------------------
+
 =head2 prepareView ( )
 
 See WebGUI::Asset::prepareView() for details.
@@ -174,13 +192,12 @@ Returns the template vars for the www_view method
 sub viewTemplateVariables {
     my $self  = shift;
     my $var   = $self->get;
-    my @posts = map { { variables => $_->viewTemplateVariables, content => $_->view } } $self->getLineage(
-        ['children'], {
-            returnObjects => 1,
-            isa           => 'WebGUI::Asset::BlogPost',
-        },
-    );
+    my @posts = map { { 
+        variables => $_->viewTemplateVariables, 
+        content => $_->view 
+    } } @{ $self->posts } ;
     $var->{posts} = \@posts;
+    return $var;
 }
 
 1;
