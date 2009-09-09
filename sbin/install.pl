@@ -37,6 +37,7 @@ pod2usage( msg => "Must specify a config file!" ) unless $configFile;
 my $session = start( $webguiRoot, $configFile );
 
 addArchives($session);
+addTopKeywords($session);
 
 
 finish($session);
@@ -55,6 +56,20 @@ sub addArchives {
             <!-- template will go here -->
                             },
     },'archives00000000000001');
+}
+
+sub addTopKeywords {
+    my $session = shift;
+    $session->db->write(q{
+        create table assetAspectTopKeywords (
+            `assetId` char(22) character set utf8 collate utf8_bin NOT NULL,
+            `revisionDate` bigint(20) NOT NULL,
+            `topKeywordsToDisplay` integer NOT NULL default 50,
+            `topKeywordsListTemplate` char(22) character set utf8 collate utf8_bin NOT NULL,
+            `topKeywordsKeywordTemplate` char(22) character set utf8 collate utf8_bin NOT NULL,
+            PRIMARY KEY  (`assetId`,`revisionDate`)
+        )
+    });
 }
 
 #----------------------------------------------------------------------------

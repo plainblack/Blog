@@ -100,22 +100,6 @@ sub definition {
 
 #-------------------------------------------------------------------
 
-=head2 duplicate
-
-This method exists for demonstration purposes only.  The superclass
-handles duplicating NewAsset Assets.  This method will be called 
-whenever a copy action is executed
-
-=cut
-
-sub duplicate {
-    my $self     = shift;
-    my $newAsset = $self->SUPER::duplicate(@_);
-    return $newAsset;
-}
-
-#-------------------------------------------------------------------
-
 =head2 getBlog (  )
 
 Returns the parent Blog for this Post.  Cache the entry for speed.
@@ -143,10 +127,16 @@ Get edit template variables.
 sub editTemplateVariables {
     my ($self)  = @_;
     my $session = $self->session;
+    my $i18n    = WebGUI::International->new($session, 'Asset_BlogPost');
+    my $form    = $session->form;
+    my $isNew   = $self->getId eq 'new';
+    my $title   = $self->getTitle;
+    my $blog = $self->getBlog;
+    my $url     = $isNew ? $blog->getUrl : $self->getUrl;
     my $var     = {
 	formFooter => WebGUI::Form::formFooter($session),
 	formTitle  => $isNew ?
-		      $i18n->get( 'add a post', 'Asset_BlogPost' ) :
+		      $i18n->get( 'adding', 'Asset_BlogPost' ) :
 		      $i18n->get( 'editing',    'Asset_BlogPost' ) . ' ' . $title,
 	titleForm => WebGUI::Form::text($session, 
 		     {name  => 'title', value => $form->get('title') || $self->get('title'),}
@@ -161,6 +151,15 @@ sub editTemplateVariables {
 		     { name  => 'savePost', value => $i18n->get('save post'),}
         ),
     };
+
+    if ($isNew) {
+        $var->{formHeader} .= WebGUI::Form::hidden( $session, { name => 'assetId', value => 'new' } )
+            . WebGUI::Form::hidden( $session, { name => 'class', value => $form->process( 'class', 'className' ) } );
+    }
+    else {
+        $var->{formHeader} .= WebGUI::Form::hidden( $session, { name => 'url', value => $url } );
+    }
+    
     return $var;
 }
 
@@ -174,22 +173,9 @@ Returns a templated form for adding or editing Stories.
 
 sub getEditForm {
     my $self    = shift;
-    my $session = $self->session;
-    my $i18n    = WebGUI::International->new( $session, 'Asset_BlogPost' );
-    my $form    = $session->form;
-    my $blog    = $self->getBlog;
-    my $isNew   = $self->getId eq 'new';
-    my $url     = $isNew ? $blog->getUrl : $self->getUrl;
-    my $title   = $self->getTitle;
-    my $var     = $self->editTemplateVariables;
+    my $blog = $self->getBlog;
 
-    if ($isNew) {
-        $var->{formHeader} .= WebGUI::Form::hidden( $session, { name => 'assetId', value => 'new' } )
-            . WebGUI::Form::hidden( $session, { name => 'class', value => $form->process( 'class', 'className' ) } );
-    }
-    else {
-        $var->{formHeader} .= WebGUI::Form::hidden( $session, { name => 'url', value => $url } );
-    }
+    my $var     = $self->editTemplateVariables;
     return $self->processTemplate( $var, $blog->get('editPostTemplateId') );
 
 } ## end sub getEditForm

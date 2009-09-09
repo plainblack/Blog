@@ -11,19 +11,19 @@ our $I18N = {
 		message     => 'Edit Post Template',
 		lastUpdated => 1252517796,
 	},
-	'groupToPost description' => {
+	'groupIdPost description' => {
 		message     => 'Group allowed to post to this blog',
 		lastUpdated => 1252517796,
 	},
-	'groupToPost label' => {
+	'groupIdPost label' => {
 		message     => 'Post Group',
 		lastUpdated => 1252517796,
 	},
-	'groupToReply description' => {
+	'groupIdReply description' => {
 		message     => 'Group allowed to reply to this blog',
 		lastUpdated => 1252517796,
 	},
-	'groupToReply label' => {
+	'groupIdReply label' => {
 		message     => 'Reply Group',
 		lastUpdated => 1252517796,
 	},
