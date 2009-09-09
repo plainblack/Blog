@@ -49,7 +49,19 @@ Adds the pingback header to the current output.
 =cut
 
 sub addPingbackHttpHeader {
+    my ($self) = @_;
 
+    my $session = $self->session();
+
+    # hmm... is there API to set header values?
+    my ($request, $url) = $session->quick(q/request url/);
+
+    $request->headers_out->set(
+        q{X-Pingback},
+        $url->gateway($self->getUrl(), q{func=pingback}),
+    );
+
+    return;
 } #addPingbackHttpHeader
 
 #-------------------------------------------------------------------
