@@ -80,27 +80,28 @@ sub definition {
     my ($class, $session, $definition) = @_;
 
 #TODO:
-#    my $i18n = WebGUI::International->new($session, q{Asset_});
+#    my $i18n = WebGUI::International->new($session, q{Asset_Aspect_Pingback});
 
     my %properties;
     tie %properties, q{Tie::IxHash};
 
     %properties = (
-        pingbackTemplateId => {
-            fieldType       => q{teamplate},
-            defaultValue    => q{...}, # TODO
+        'pingbackTemplateId' => {
+            'fieldType'       => q{template},
+            'defaultValue'    => q{pingback00000000000001},
+            'namespace'       => q{asset-aspect-pingback},
         },
-        pingbackLinks => {
-            noFormPost	    => 0,
-            fieldType       => q{url},
-            defaultValue    => q{},
+        'pingbackLinks' => {
+            'noFormPost'      => 0,
+            'fieldType'       => q{url},
+            'defaultValue'    => q{},
         },
     );
     push(@{$definition}, {
-        autoGenerateForms   => 1,
-        tableName           => 'assetAspectPingback',
-        className           => 'WebGUI::AssetAspect::Pingback',
-        properties          => \%properties
+        'autoGenerateForms'   => 1,
+        'tableName'           => 'assetAspectPingback',
+        'className'           => 'WebGUI::AssetAspect::Pingback',
+        'properties'          => \%properties
     });
 
     return $class->next::method($session, $definition);
