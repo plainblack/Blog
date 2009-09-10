@@ -17,8 +17,12 @@ use FindBin;
 use strict;
 use lib "/data/WebGUI/t/lib";
 use Test::More;
+use Test::Deep;
 use WebGUI::Test; # Must use this before any other WebGUI modules
 use WebGUI::Session;
+use WebGUI::Test::Maker::Permission;
+use WebGUI::User;
+use WebGUI::Group;
 
 #----------------------------------------------------------------------------
 # Init
@@ -36,14 +40,14 @@ $postUser->username('Can Post User');
 $reader->username('Average Reader');
 $blogOwner->username('Blog Owner');
 WebGUI::Test->groupsToDelete($canPostGroup);
-WebGUI::Test->usersToDelete($postUser, $archiveOwner, $reader);
+WebGUI::Test->usersToDelete($postUser, $blogOwner, $reader);
 
 my $canEditMaker = WebGUI::Test::Maker::Permission->new();
 $canEditMaker->prepare({
     object   => $blogPost,
     session  => $session,
     method   => 'canEdit',
-    pass     => [3, $postUser, $archiveOwner ],
+    pass     => [3, $postUser, $blogOwner ],
     fail     => [1, $reader ],
 });
 
@@ -54,7 +58,7 @@ my $blog     = $defaultNode->addChild({
                    #1234567890123456789012
     assetId     => 'TestBlogAsset1',
     groupToPost => $canPostGroup->getId,
-    ownerUserId => $archiveOwner->userId,
+    ownerUserId => $blogOwner->userId,
 });
 my $blogTag  = WebGUI::VersionTag->getWorking($session);
 $blogTag->commit;
@@ -69,7 +73,7 @@ plan tests => 1
             + $canEditMaker->plan
             ;
 
-my $class  = 'WebGUI::Asset::Story';
+my $class  = 'WebGUI::Asset::BlogPost';
 my $loaded = use_ok($class);
 
 SKIP: {
@@ -87,8 +91,8 @@ $session->asset($defaultNode);
 ok(! WebGUI::Asset::BlogPost->validParent($session), 'validParent: wrong type of asset');
 $session->asset(WebGUI::Asset->getRoot($session));
 ok(! WebGUI::Asset::BlogPost->validParent($session), 'validParent: Any old folder is not valid');
-$session->asset($archive);
-ok(  WebGUI::Asset::BlogPost->validParent($session), 'validParent: BlogArchive is valid');
+$session->asset($blog);
+ok(  WebGUI::Asset::BlogPost->validParent($session), 'validParent: Blog is valid');
 
 ############################################################
 #
@@ -96,7 +100,7 @@ ok(  WebGUI::Asset::BlogPost->validParent($session), 'validParent: BlogArchive i
 #
 ############################################################
 
-$blogPost = $archive->addChild({
+$blogPost = $blog->addChild({
     className => 'WebGUI::Asset::BlogPost',
     title     => 'Post 1',
     content  => 'The story of a CMS',
